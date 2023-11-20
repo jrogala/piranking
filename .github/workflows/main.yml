@@ -1,0 +1,61 @@
+name: Convert Markdown to PDF
+
+on: [push]
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install pandoc and xelatex
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pandoc wkhtmltopdf
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Convert Markdown to PDF
+      run: |
+        for input_file in $(find src -name "*.md" ! -path "src/*/"); do
+          output_file="build/$(basename "$input_file" .md).pdf"
+          echo "Converting $input_file to $output_file"
+          pandoc -f gfm -o "$output_file" \
+            -V mainfont="Times New Roman" \
+            -V geometry:a4paper \
+            -V geometry:margin=1in \
+            -V documentclass=article \
+            -V fontsize=12pt \
+            -V papersize=a4 \
+            -V lang=en-US \
+            -V colorlinks=true \
+            -V linkcolor=black \
+            -V urlcolor=blue \
+            -V geometry:headheight=15pt \
+            --pdf-engine=wkhtmltopdf \
+            --pdf-engine-opt=--enable-local-file-access \
+            "$input_file"
+        done
+
+    - name: Add PDF files to build directory
+      run: |
+        git add build/*.pdf -f
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "Add PDF files to build directory" -a
+
+    - name: Push changes
+      run: |
+        git push
+
+    - name: Upload PDF artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: converted-pdf
+        path: build/*.pdf

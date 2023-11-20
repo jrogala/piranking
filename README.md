@@ -1,2 +1,0 @@
-# piranking
-piranking documentation
