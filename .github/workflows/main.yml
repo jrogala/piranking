@@ -20,7 +20,7 @@ jobs:
 
     - name: Convert Markdown to PDF
       run: |
-        for input_file in $(find src -name "*.md" ! -path "src/*/"); do
+        for input_file in $(find src -name "*.md" ! -path "src/document/*/"); do
           output_file="build/$(basename "$input_file" .md).pdf"
           echo "Converting $input_file to $output_file"
           pandoc -f gfm -o "$output_file" \
